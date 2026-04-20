@@ -99,3 +99,18 @@ For example: `framedash.py -r demolog.log`
 
 ## Using framedash
 
+### Incoming Frame Table
+
+The Incoming Frame Table shows the the live CAN traffic in overwrite mode, i.e. stale frames are overwritten by new frames with the same ID. Table entries are highlighted in blue whenever they are written in order to spotlight these overwrites. The Incoming Frame Table can sometimes reveal patterns in bus traffic and it acts as a useful reference while defining new parameters. Capture/Playback can be paused and resumed by pressing the `c` key. The table can be scrolled up and down using the `PgUp` and `PgDn` keys.
+
+### Live Parameter Table
+
+The Live Parameter Table shows the current value of all Parameters extracted from the CAN traffic. Each Parameter is updated whenever a new CAN frame is received which matches its definition. The table can be scrolled up and down using the `Home` and `End` keys.
+
+### Defining a New Parameter
+
+### Deleting a Parameter
+
+### Saving and Loading Parameter Files
+
+### Writing a Log File
