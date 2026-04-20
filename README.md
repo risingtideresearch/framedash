@@ -105,12 +105,38 @@ The Incoming Frame Table shows the the live CAN traffic in overwrite mode, i.e. 
 
 ### Live Parameter Table
 
-The Live Parameter Table shows the current value of all Parameters extracted from the CAN traffic. Each Parameter is updated whenever a new CAN frame is received which matches its definition. The table can be scrolled up and down using the `Home` and `End` keys.
+The Live Parameter Table shows the current value of all parameters extracted from the CAN traffic. Each parameter is updated whenever a new CAN frame is received which matches its definition. The table can be scrolled up and down using the `Home` and `End` keys.
 
 ### Defining a New Parameter
 
+A key feature of framedash is the ability to match incoming CAN frames to a template called a Parameter Definition and extract the value of a byte or several bytes. Frames can be matched based on either their Arbitration ID or PGN in combination with any number of byte values in the data field. The Parameter Definition also specifies a byte position or range of byte positions in the data field to extract and display in the Live Parameter Table. Pressing `n` opens the New Parameter dialog. 
+
+#### Parameter Name
+Names can be any string up to 20 characters, including spaces. This is the text that is displayed next to the extracted value in the Live Parameter Table.
+
+#### Arbitration ID
+Arbitration ID should be entered in hexadecimal format without the "0x" prefix. 11- and 29-bit IDs are both accepted. Leaving this field blank will prompt the user to match on a PGN instead. 
+
+#### PGN
+PGN should be entered in hexadecimal format without the "0x" prefix. A Parameter Definition **must** contain either an Arbitration ID or PGN. 
+
+#### Data Byte Matches
+The value for each byte position to be matched should be entered in hexadecimal format without the "0x" prefix. The user is prompted for each of 8 values starting from left-most byte 0. Leaving a position blank will match *any* value in that position.
+
+#### Bytes to Be Interpreted
+Byte positions are zero-indexed left-to-right, ordered, and inclusive. Multiple bytes selected together are interpreted as a single value with the number's Endianness determined by the order of the "beginning" and "end" positions. For example, in the data frame `[66 99 23 53 5A CB FF FF]` the value returned by `beginning=2 end=4` would be `0x23535A`, whereas the value returned by `beginning=4 end=2` would be `0x5A5323`.
+
+#### Convert to New Radix
+The extracted byte value can be displayed in the Live Parameter Table in radix 2, 8, 10, or 16 for ease of interpretation.
+
 ### Deleting a Parameter
+If a Parameter Definition is no longer needed, it can be deleted by pressing the 'd' key, followed by the table index of the parameter to delete. This will remove the entry from the Live Parameter Table as well as the Parameter Definition itself. 
 
 ### Saving and Loading Parameter Files
+It may be desirable to save all of the Parameter Definitions from one session and open them in another. To do this, simply press the `s` key and enter a filename for the Parameter Definition JSON file. To load a file, press the `p` key. Loading a Parameter Definitions file will overwrite any Parameter Definitions already in the table. If framedash detects that the table is not empty, it will ask whether the user would like to save the existing Parameter Defintions before loading new ones. 
 
 ### Writing a Log File
+Log files are recorded in can-utils `.log` format. To start a log recording, press the `l` key and enter a filename for the log. All incoming frames will be recorded to this log file until the `l` key is pressed again. These log files can be replayed in framedash Playback Mode. 
+
+### Playing a Log File
+
