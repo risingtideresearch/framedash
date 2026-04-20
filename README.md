@@ -137,6 +137,3 @@ It may be desirable to save all of the Parameter Definitions from one session an
 
 ### Writing a Log File
 Log files are recorded in can-utils `.log` format. To start a log recording, press the `l` key and enter a filename for the log. All incoming frames will be recorded to this log file until the `l` key is pressed again. These log files can be replayed in framedash Playback Mode. 
-
-### Playing a Log File
-
