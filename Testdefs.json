@@ -1,0 +1,1 @@
+[{"name": "Test Parameter ", "id": 485490657, "pgn": null, "pattern": [102, 153, null, null, null, null, null, null], "msb": 5, "lsb": 4, "radix": 10}, {"name": "My Parameter ", "id": 485434593, "pgn": null, "pattern": [102, 153, null, null, null, null, null, null], "msb": 7, "lsb": 4, "radix": 16}]

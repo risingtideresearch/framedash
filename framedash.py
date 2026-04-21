@@ -81,7 +81,7 @@ def convertToPGN(arbitration_id):
     data_page = (arbitration_id>>24)&0b1
     pdu_format = (arbitration_id>>16)&0b11111111
     pdu_specific = (arbitration_id>>8)&0b11111111
-    source_addr = (arbitration_id>>8)&0b11111111
+    source_addr = (arbitration_id)&0b11111111
     global_pgn = 0 if pdu_format < 240 else pdu_specific
     pgn = (reserved<<17)|(data_page<<16)|(pdu_format<<8)|global_pgn
     return pgn
