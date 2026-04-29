@@ -80,6 +80,9 @@ else:
         print("File Error")
         raise SystemExit
 
+class PromptAborted(Exception):
+    pass
+
 def convertToPGN(arbitration_id):
     priority = (arbitration_id>>26)&0b111
     reserved = (arbitration_id>>25)&0b1
@@ -261,6 +264,11 @@ def validateYN(stdscr, input):
         stdscr.addstr(28, 0, "(Response must be y or n)")
         return False    
 
+def detectAbort(ch):
+    if ch == 9:
+        raise PromptAborted
+    return ch
+
 def promptUser(stdscr, promptWin, promptBox, prompt, validator, initial):
     validated = False
     while(validated == False):
@@ -270,7 +278,10 @@ def promptUser(stdscr, promptWin, promptBox, prompt, validator, initial):
         stdscr.refresh()
         if initial != None:
             promptWin.addstr(0,0,initial)
-        promptBox.edit()
+        try:
+            promptBox.edit(detectAbort)
+        except PromptAborted:
+            raise
         response = promptBox.gather()
         promptWin.clear()
         if validator(stdscr, response):
@@ -282,41 +293,47 @@ def promptUser(stdscr, promptWin, promptBox, prompt, validator, initial):
 
 def createParameter(stdscr, promptWin, editParam):
     global parameterDefs
-    promptBox = Textbox(promptWin)
-    paramName = promptUser(stdscr, promptWin, promptBox, "Name your new parameter:", validateName, editParam['name'] if editParam != None else None)
-    paramID = promptUser(stdscr, promptWin, promptBox, "Arbitration ID to match (Hex format, leave blank to match on PGN):", validateID, f"{editParam['id']:X}" if editParam != None else None)
-    paramPGN = None
-    if paramID == None: 
-        paramPGN = int(promptUser(stdscr, promptWin, promptBox, "PGN to match (Hex format):", validatePGN, f"{editParam['pgn']:X}" if editParam != None else None), 16)
-    else:
-        paramID = int(paramID, 16)
-    paramPattern = []
-    paramPattern.insert(0, promptUser(stdscr, promptWin, promptBox, "Match for data byte 0 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][0]:X}" if (editParam != None) and (editParam['pattern'][0] != None) else None))
-    paramPattern.insert(1, promptUser(stdscr, promptWin, promptBox, "Match for data byte 1 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][1]:X}" if (editParam != None) and (editParam['pattern'][1] != None) else None))
-    paramPattern.insert(2, promptUser(stdscr, promptWin, promptBox, "Match for data byte 2 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][2]:X}" if (editParam != None) and (editParam['pattern'][2] != None) else None))
-    paramPattern.insert(3, promptUser(stdscr, promptWin, promptBox, "Match for data byte 3 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][3]:X}" if (editParam != None) and (editParam['pattern'][3] != None) else None))
-    paramPattern.insert(4, promptUser(stdscr, promptWin, promptBox, "Match for data byte 4 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][4]:X}" if (editParam != None) and (editParam['pattern'][4] != None) else None))
-    paramPattern.insert(5, promptUser(stdscr, promptWin, promptBox, "Match for data byte 5 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][5]:X}" if (editParam != None) and (editParam['pattern'][5] != None) else None))
-    paramPattern.insert(6, promptUser(stdscr, promptWin, promptBox, "Match for data byte 6 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][6]:X}" if (editParam != None) and (editParam['pattern'][6] != None) else None))
-    paramPattern.insert(7, promptUser(stdscr, promptWin, promptBox, "Match for data byte 7 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][7]:X}" if (editParam != None) and (editParam['pattern'][7] != None) else None))
-    for index, paramDB in enumerate(paramPattern):
-        if paramDB != None:
-            paramPattern[index] = int(paramDB, 16)
-    paramDataBytesStart = int(promptUser(stdscr, promptWin, promptBox, "Beginning of bytes to be interpreted? (MSB = 0, Inclusive)", validatePos, str(editParam['msb']) if editParam != None else None), 10)
-    paramDataBytesEnd = int(promptUser(stdscr, promptWin, promptBox, "End of bytes to be interpreted? (MSB = 0, Inclusive)", validatePos, str(editParam['lsb']) if editParam != None else None), 10)
-    paramRadix = int(promptUser(stdscr, promptWin, promptBox, "Convert data fields to new radix? (2,8,10,16)", validateRadix, str(editParam['radix']) if editParam != None else None), 10)
-    parameterDefs.append({
-        "name":paramName,
-        "id":paramID,
-        "pgn":paramPGN,
-        "pattern":paramPattern,
-        "msb":paramDataBytesStart,
-        "lsb":paramDataBytesEnd,
-        "radix":paramRadix
-    })
-    stdscr.addstr(26, 0, "                                                                                              ")
-    stdscr.addstr(28, 0, "                                                                                              ")
-    promptWin.clear()
+    try:
+        promptBox = Textbox(promptWin)
+        paramName = promptUser(stdscr, promptWin, promptBox, "Name your new parameter:", validateName, editParam['name'] if editParam != None else None)
+        paramID = promptUser(stdscr, promptWin, promptBox, "Arbitration ID to match (Hex format, leave blank to match on PGN):", validateID, f"{editParam['id']:X}" if editParam != None else None)
+        paramPGN = None
+        if paramID == None: 
+            paramPGN = int(promptUser(stdscr, promptWin, promptBox, "PGN to match (Hex format):", validatePGN, f"{editParam['pgn']:X}" if editParam != None else None), 16)
+        else:
+            paramID = int(paramID, 16)
+        paramPattern = []
+        paramPattern.insert(0, promptUser(stdscr, promptWin, promptBox, "Match for data byte 0 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][0]:X}" if (editParam != None) and (editParam['pattern'][0] != None) else None))
+        paramPattern.insert(1, promptUser(stdscr, promptWin, promptBox, "Match for data byte 1 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][1]:X}" if (editParam != None) and (editParam['pattern'][1] != None) else None))
+        paramPattern.insert(2, promptUser(stdscr, promptWin, promptBox, "Match for data byte 2 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][2]:X}" if (editParam != None) and (editParam['pattern'][2] != None) else None))
+        paramPattern.insert(3, promptUser(stdscr, promptWin, promptBox, "Match for data byte 3 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][3]:X}" if (editParam != None) and (editParam['pattern'][3] != None) else None))
+        paramPattern.insert(4, promptUser(stdscr, promptWin, promptBox, "Match for data byte 4 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][4]:X}" if (editParam != None) and (editParam['pattern'][4] != None) else None))
+        paramPattern.insert(5, promptUser(stdscr, promptWin, promptBox, "Match for data byte 5 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][5]:X}" if (editParam != None) and (editParam['pattern'][5] != None) else None))
+        paramPattern.insert(6, promptUser(stdscr, promptWin, promptBox, "Match for data byte 6 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][6]:X}" if (editParam != None) and (editParam['pattern'][6] != None) else None))
+        paramPattern.insert(7, promptUser(stdscr, promptWin, promptBox, "Match for data byte 7 (Hex format, leave blank to match any):", validateByte, f"{editParam['pattern'][7]:X}" if (editParam != None) and (editParam['pattern'][7] != None) else None))
+        for index, paramDB in enumerate(paramPattern):
+            if paramDB != None:
+                paramPattern[index] = int(paramDB, 16)
+        paramDataBytesStart = int(promptUser(stdscr, promptWin, promptBox, "Beginning of bytes to be interpreted? (MSB = 0, Inclusive)", validatePos, str(editParam['msb']) if editParam != None else None), 10)
+        paramDataBytesEnd = int(promptUser(stdscr, promptWin, promptBox, "End of bytes to be interpreted? (MSB = 0, Inclusive)", validatePos, str(editParam['lsb']) if editParam != None else None), 10)
+        paramRadix = int(promptUser(stdscr, promptWin, promptBox, "Convert data fields to new radix? (2,8,10,16)", validateRadix, str(editParam['radix']) if editParam != None else None), 10)
+        parameterDefs.append({
+            "name":paramName,
+            "id":paramID,
+            "pgn":paramPGN,
+            "pattern":paramPattern,
+            "msb":paramDataBytesStart,
+            "lsb":paramDataBytesEnd,
+            "radix":paramRadix
+        })
+        stdscr.addstr(26, 0, "                                                                                              ")
+        stdscr.addstr(28, 0, "                                                                                              ")
+        promptWin.clear()
+    except PromptAborted:
+        stdscr.addstr(26, 0, "                                                                                              ")
+        stdscr.addstr(28, 0, "                                                                                              ")
+        promptWin.clear()
+        raise
     return
 
 def deleteParameter(stdscr, promptWin, paramPad):
@@ -324,7 +341,13 @@ def deleteParameter(stdscr, promptWin, paramPad):
     if len(paramList) == 0:
         return
     promptBox = Textbox(promptWin)
-    deleteIndex = promptUser(stdscr, promptWin, promptBox, "Table index of parameter to delete:", validateParamIndex, None)
+    try:
+        deleteIndex = promptUser(stdscr, promptWin, promptBox, "Table index of parameter to delete:", validateParamIndex, None)
+    except PromptAborted:
+        stdscr.addstr(26, 0, "                                                                                              ")
+        stdscr.addstr(28, 0, "                                                                                              ")
+        promptWin.clear()
+        return
     nameToDelete = list(paramList.keys())[int(deleteIndex, 10)]
     paramList.pop(nameToDelete)
     for index, definition in enumerate(parameterDefs):
@@ -341,7 +364,13 @@ def editParameter(stdscr, promptWin, paramPad):
     if len(paramList) == 0:
         return    
     promptBox = Textbox(promptWin)
-    deleteIndex = promptUser(stdscr, promptWin, promptBox, "Table index of parameter to edit:", validateParamIndex, None)
+    try:
+        deleteIndex = promptUser(stdscr, promptWin, promptBox, "Table index of parameter to edit:", validateParamIndex, None)
+    except PromptAborted:
+        stdscr.addstr(26, 0, "                                                                                              ")
+        stdscr.addstr(28, 0, "                                                                                              ")
+        promptWin.clear()
+        return
     nameToDelete = list(paramList.keys())[int(deleteIndex, 10)]
     paramList.pop(nameToDelete)
     for index, definition in enumerate(parameterDefs):
@@ -352,7 +381,10 @@ def editParameter(stdscr, promptWin, paramPad):
     stdscr.addstr(28, 0, "                                                                                              ")
     promptWin.clear()  
     paramPad.clear()         
-    createParameter(stdscr, promptWin, parameterToEdit)
+    try: 
+        createParameter(stdscr, promptWin, parameterToEdit)
+    except PromptAborted:
+        parameterDefs.append(parameterToEdit)
     return    
 
 def saveParameterDefs(stdscr, promptWin):
@@ -361,7 +393,13 @@ def saveParameterDefs(stdscr, promptWin):
         return
     promptBox = Textbox(promptWin)
     while True:
-        filepath = promptUser(stdscr, promptWin, promptBox, "Filename to save parameter definitions:", validateTrue, None)
+        try:
+            filepath = promptUser(stdscr, promptWin, promptBox, "Filename to save parameter definitions:", validateTrue, None)
+        except PromptAborted:
+            stdscr.addstr(26, 0, "                                                                                              ")
+            stdscr.addstr(28, 0, "                                                                                              ")
+            promptWin.clear()
+            return
         stdscr.addstr(28, 0, "                                                                                              ")
         try:
             with open(filepath.strip() + ".json", "x") as f:
@@ -382,14 +420,26 @@ def loadParameterDefs(stdscr, promptWin, paramPad):
     global parameterDefs, paramList
     promptBox = Textbox(promptWin)
     if len(parameterDefs) > 0:
-        saveFirst = promptUser(stdscr, promptWin, promptBox, "Loading will overwrite the current list. Save first? (y/n)", validateYN, None)
+        try:
+            saveFirst = promptUser(stdscr, promptWin, promptBox, "Loading will overwrite the current list. Save first? (y/n)", validateYN, None)
+        except PromptAborted:
+            stdscr.addstr(26, 0, "                                                                                              ")
+            stdscr.addstr(28, 0, "                                                                                              ")
+            promptWin.clear()
+            return
         if saveFirst.strip() == "y":
             stdscr.addstr(26, 0, "                                                                                              ")
             stdscr.addstr(28, 0, "                                                                                              ")
             promptWin.clear()
             saveParameterDefs(stdscr, promptWin)
     while True:
-        filepath = promptUser(stdscr, promptWin, promptBox, "Filename to load:", validateTrue, None)
+        try:
+            filepath = promptUser(stdscr, promptWin, promptBox, "Filename to load:", validateTrue, None)
+        except PromptAborted:
+            stdscr.addstr(26, 0, "                                                                                              ")
+            stdscr.addstr(28, 0, "                                                                                              ")
+            promptWin.clear()
+            return
         stdscr.addstr(28, 0, "                                                                                              ")
         try:
             with open(filepath.strip() + ".json", "r") as f:
@@ -410,7 +460,13 @@ def startLogging(stdscr, promptWin):
     global channel, logger, logFile
     promptBox = Textbox(promptWin)
     while True:
-        filepath = promptUser(stdscr, promptWin, promptBox, "Filename to save logfile:", validateTrue, None)
+        try:
+            filepath = promptUser(stdscr, promptWin, promptBox, "Filename to save logfile:", validateTrue, None)
+        except PromptAborted:
+            stdscr.addstr(26, 0, "                                                                                              ")
+            stdscr.addstr(28, 0, "                                                                                              ")
+            promptWin.clear()
+            return False
         stdscr.addstr(28, 0, "                                                                                              ")
         try:
             logFile = open(filepath.strip() + ".log", "x")
@@ -419,7 +475,7 @@ def startLogging(stdscr, promptWin):
             promptWin.clear()                
             try: 
                 logger = can.CanutilsLogWriter(logFile, channel=channel, append=False)
-                return
+                return True
             except ValueError:
                 stdscr.addstr(28, 0, "(File Error)")
         except FileNotFoundError:
@@ -465,7 +521,13 @@ def recordToFile(row):
 
 def exitConfirm(stdscr, promptWin):
     promptBox = Textbox(promptWin)
-    confirmed = promptUser(stdscr, promptWin, promptBox, "Are you sure you want to exit? (y/n)", validateYN, None)
+    try:
+        confirmed = promptUser(stdscr, promptWin, promptBox, "Are you sure you want to exit? (y/n)", validateYN, None)
+    except PromptAborted:
+        stdscr.addstr(26, 0, "                                                                                              ")
+        stdscr.addstr(28, 0, "                                                                                              ")
+        promptWin.clear()
+        return
     if confirmed.strip() == "y":
         stdscr.addstr(26, 0, "                                                                                              ")
         stdscr.addstr(28, 0, "                                                                                              ")
@@ -534,8 +596,8 @@ def main(stdscr):
                     loggingActive = False
                     contextMenu(stdscr, WHITE_ON_CYAN)
                 else:
-                    startLogging(stdscr, promptWin)
-                    loggingActive = True
+                    if startLogging(stdscr, promptWin):
+                        loggingActive = True
                     contextMenu(stdscr, WHITE_ON_CYAN)
             elif key == 'o':
                 if paramRecordingActive:
