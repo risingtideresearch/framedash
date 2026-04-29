@@ -39,25 +39,26 @@ log playback mode:
 ▒█░░░ ▀░▀▀ ▀░░▀ ▀░░░▀ ▀▀▀ ▒█▄▄▀ ▀░░▀ ▀▀▀ ▀░░▀
 
 INCOMING FRAME TABLE
-0       0x1cefff24      0xef00          6699dbed4a070000
-1       0x305           [Std ID]        0000000000000000
-2       0x307           [Std ID]        1234567856494300
-3       0x1cef24e1      0xef00          669901002720ffff
-4       0x19f21424      0x1f214         00851400008f70d3
-5       0x19f21224      0x1f212         01ffffffffffffff
+0       0x1cefff24      0xef00          66992001c6760000
+1       0x19f21424      0x1f214         0100000000ffff37
+2       0x19f21224      0x1f212         c1ffffffffffffff
+3       0x19f30624      0x1f306         37ff00fdffffffff
+4       0x305           [Std ID]        0000000000000000
+5       0x307           [Std ID]        1234567856494300
 (Scroll with PgUp/PgDn)
 
 LIVE PARAMETER TABLE
-0       Test Parameter  36720
-
+0       Test Parameter  5250
+1       My Parameter    0xffff2027
 
 
 
 
 (Scroll with Home/End)
 
-Resume [C]apture    Start [L]ogging     [N]ew Parameter     [D]elete Parameter
-[S]ave Parameter Definitions  Load [P]arameter Definitions  [E]xit
+Pause [C]apture     Start [L]ogging     [N]ew Parameter     [D]elete Parameter
+Edit Parame[t]er    [S]ave Parameter Definitions  Load [P]arameter Definitions
+Start Parameter Rec[o]rding   [E]xit
 ```
 
 framedash provides a Terminal User Interface (TUI) for monitoring and logging CAN traffic while extracting specific data based on pattern matching. framedash is intended to aid in the exploration of proprietary higher-layer protocols on the CAN bus. 
@@ -109,7 +110,7 @@ The Live Parameter Table shows the current value of all parameters extracted fro
 
 ### Defining a New Parameter
 
-A key feature of framedash is the ability to match incoming CAN frames to a template called a Parameter Definition and extract the value of a byte or several bytes. Frames can be matched based on either their Arbitration ID or PGN in combination with any number of byte values in the data field. The Parameter Definition also specifies a byte position or range of byte positions in the data field to extract and display in the Live Parameter Table. Pressing `n` opens the New Parameter dialog. 
+A key feature of framedash is the ability to match incoming CAN frames to a template called a Parameter Definition and extract the value of a byte or several bytes. Frames can be matched based on either their Arbitration ID or PGN in combination with any number of byte values in the data field. The Parameter Definition also specifies a byte position or range of byte positions in the data field to extract and display in the Live Parameter Table. Pressing `n` opens the New Parameter dialog. **Any user dialog can be aborted at any time using the Tab key.**
 
 #### Parameter Name
 Names can be any string up to 20 characters, including spaces. This is the text that is displayed next to the extracted value in the Live Parameter Table.
@@ -129,6 +130,9 @@ Byte positions are zero-indexed left-to-right, ordered, and inclusive. Multiple 
 #### Convert to New Radix
 The extracted byte value can be displayed in the Live Parameter Table in radix 2, 8, 10, or 16 for ease of interpretation.
 
+### Editing a Parameter
+An existing Parameter Definiton can be edited by pressing the `t` key. This will ask for the index of the Parameter Defintion to edit and then open the Parameter Creation dialog with each field pre-filled with the value of the parameter to be edited. 
+
 ### Deleting a Parameter
 If a Parameter Definition is no longer needed, it can be deleted by pressing the 'd' key, followed by the table index of the parameter to delete. This will remove the entry from the Live Parameter Table as well as the Parameter Definition itself. 
 
@@ -137,3 +141,6 @@ It may be desirable to save all of the Parameter Definitions from one session an
 
 ### Writing a Log File
 Log files are recorded in can-utils `.log` format. To start a log recording, press the `l` key and enter a filename for the log. All incoming frames will be recorded to this log file until the `l` key is pressed again. These log files can be replayed in framedash Playback Mode. 
+
+### Parameter Recordings
+A Parameter Recording is a `.csv` file containing the timestamped values of the Live Parameter Table. This can be useful for data analysis and chart generation. Pressing the `o` key will toggle recording. Each time a new recording starts, a new file named `parameters[unixtime].csv` is generated.
